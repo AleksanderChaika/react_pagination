@@ -1,14 +1,16 @@
-import { useState } from 'react';
-import type { FC } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import './App.css';
 import { getNumbers } from './utils';
 import { Pagination } from './components/Pagination';
 
 const items = getNumbers(1, 42).map(n => `Item ${n}`);
 
-export const App: FC = () => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [perPage, setPerPage] = useState(5);
+export const App = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const currentPage = Number(searchParams.get('page')) || 1;
+
+  const perPage = Number(searchParams.get('perPage')) || 5;
 
   const startIndex = (currentPage - 1) * perPage;
   const endIndex = currentPage * perPage;
@@ -16,7 +18,24 @@ export const App: FC = () => {
   const visibleItems = items.slice(startIndex, endIndex);
 
   const firstItem = items.length > 0 ? startIndex + 1 : 0;
+
   const lastItem = Math.min(endIndex, items.length);
+
+  const handlePageChange = (page: number) => {
+    setSearchParams({
+      page: String(page),
+      perPage: String(perPage),
+    });
+  };
+
+  const handlePerPageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newPerPage = Number(event.target.value);
+
+    setSearchParams({
+      page: '1',
+      perPage: String(newPerPage),
+    });
+  };
 
   return (
     <div className="container">
@@ -33,10 +52,7 @@ export const App: FC = () => {
             id="perPageSelector"
             className="form-control"
             value={perPage}
-            onChange={event => {
-              setPerPage(Number(event.target.value));
-              setCurrentPage(1);
-            }}
+            onChange={handlePerPageChange}
           >
             <option value="3">3</option>
             <option value="5">5</option>
@@ -54,7 +70,7 @@ export const App: FC = () => {
         total={items.length}
         perPage={perPage}
         currentPage={currentPage}
-        onPageChange={setCurrentPage}
+        onPageChange={handlePageChange}
       />
 
       <ul>
